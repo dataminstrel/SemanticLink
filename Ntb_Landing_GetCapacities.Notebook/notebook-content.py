@@ -34,6 +34,7 @@ import sempy.fabric as fabric
 
 # CELL ********************
 
+#This function will remove all characters from the columns that would cause an error on trying to save
 def fnc_PrepareColumns(_Columns):
     _Columns.columns = _Columns.columns.str.replace('[^a-zA-Z0-9]', '', regex=True)
     _Columns.columns = _Columns.columns.str.replace('[ ]', '', regex=True)
@@ -49,7 +50,6 @@ def fnc_PrepareColumns(_Columns):
 # CELL ********************
 
 Table_Name = 'Landing_Fabric_Capacities'
-# Define Lakehouse name and description.
 LH_Name = "LH_SemanticLink_Data"
 LH_desc = "Lakehouse for Power BI usage monitoring"
 
@@ -62,44 +62,25 @@ LH_desc = "Lakehouse for Power BI usage monitoring"
 
 # CELL ********************
 
-# Mount the Lakehouse for direct file system access
 lakehouse = mssparkutils.lakehouse.get(LH_Name)
-mssparkutils.fs.mount(lakehouse.get("properties").get("abfsPath"), f"/{LH_Name}")
-
-# Retrieve and store local and ABFS paths of the mounted Lakehouse
-local_path = mssparkutils.fs.getMountPath(f"/{LH_Name}")
 lh_abfs_path = lakehouse.get("properties").get("abfsPath")
 
 # METADATA ********************
 
 # META {
 # META   "language": "python",
-# META   "language_group": "synapse_pyspark"
+# META   "language_group": "synapse_pyspark",
+# META   "frozen": false,
+# META   "editable": true
 # META }
-
-# MARKDOWN ********************
-
-# Alle benodigde lijsten om de code vlot te laten lopen
 
 # CELL ********************
 
-#fill list of workspaces
 workspaces = fabric.list_capacities()
 workspaces = fnc_PrepareColumns(workspaces)
 sparkdf = spark.createDataFrame(workspaces)
 sparkdf.write.format("delta").option("mergeSchema", "true").mode("overwrite").save(f"{lh_abfs_path}/Tables/{Table_Name}")
 
-
-# METADATA ********************
-
-# META {
-# META   "language": "python",
-# META   "language_group": "synapse_pyspark"
-# META }
-
-# CELL ********************
-
-display(workspaces)
 
 # METADATA ********************
 
